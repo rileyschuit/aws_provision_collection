@@ -18,7 +18,6 @@ readme: README.md
 authors:
 - Riley Schuit <riley.schuit@gmail.com>
 
-
 ### OPTIONAL but strongly recommended
 # A short summary description of the collection
 description: Collection for bringing up VPC, setting IAM, and creating a s3 bucket
@@ -49,7 +48,7 @@ repository: http://github.com/rileyschuit/aws_provision_collection
 documentation: http://github.com/rileyschuit/aws_provision_collection
 
 # The URL to the homepage of the collection/project
-homepage: http://github.com/rileyschuit/aws_provision_collection
+homepage: http://resume.rileyschuit.com
 
 # The URL to the collection issue tracker
 issues: http://github.com/rileyschuit/aws_provision_collection/issue/tracker

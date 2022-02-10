@@ -37,10 +37,10 @@ playbook example:
   connection: local
 
   roles:
-    - rileyschuit.aws_provision_collection.provision-aws-vpc
-    - rileyschuit.aws_provision_collection.provision-aws-iam
+    - rileyschuit.aws_provision_collection.provision_aws_vpc
+    - rileyschuit.aws_provision_collection.provision_aws_iam
 ```
 
 Role documentation:
-[provision-aws-iam](./docs/provision-aws-iam.md)  
-[provision-aws-vpc](./docs/provision-aws-vpc.md)
+[provision_aws_iam](./roles/provision_aws_iam/README.md)  
+[provision_aws_vpc](./roles/provision_aws_vpc/README.md)
