@@ -1,0 +1,74 @@
+---
+- name: Make sure boto is installed locally
+  pip:
+    name: boto3
+    state: present
+    extra_args: --user
+
+- name: VPC BLOCK
+  connection: local
+  block:
+    - name: Create VPC
+      ec2_vpc_net:
+        name: "{{ item.name }}"
+        cidr_block: "{{ item.cidr_block }}"
+        region: "{{ item.region }}"
+      with_items: "{{ vpc }}"
+      register: vpc_creation
+
+    - name: Set up igw
+      ec2_vpc_igw:
+        vpc_id: "{{ item.vpc.id }}"
+        region: "{{ item.item.region }}"
+        state: present
+      register: igw
+      # when: item.igw is True
+      with_items: "{{ vpc_creation.results }}"
+
+      # Creates a list of items to help create the vpc subnets
+      # ['vpc': (vpc_id from creation), 'subnet': (cidr mask), 'az': (az)]
+    - name: Manage data from vpc creation and needed subnets
+      set_fact:
+        subnet_struct: "{{ subnet_struct }} + [
+          {% for created_vpc in vpc_creation.results %}
+            {% for subnet_item in created_vpc.item.subnets %}
+              { 'vpc': '{{ created_vpc.vpc.id }}',
+                'subnet': '{{ subnet_item.subnet }}',
+                'az': '{{ subnet_item.az }}',
+                'region': '{{ created_vpc.item.region }}',
+                'tags': {{ created_vpc.item.tags }}
+              },
+            {% endfor %}
+         {% endfor%}
+        ]"
+
+    - name: Create network
+      ec2_vpc_subnet:
+        state: present
+        region: "{{ item.region }}"
+        vpc_id: "{{ item.vpc }}"
+        cidr: "{{ item.subnet }}"
+        tags: "{{ item.tags }}"
+      with_items: "{{ subnet_struct }}"
+      register: subnets
+
+    - name: Set up subnet route table
+      ec2_vpc_route_table:
+        vpc_id: "{{ item.item.vpc.id }}"
+        region: "{{ item.item.item.region }}"
+        tags: "{{ item.item.item.tags }}"
+        subnets: >
+          [
+            {% for igw_detail in igw.results %}
+              {% for subnets_detail in subnets.results %}
+                {% if igw_detail.item.item.tags == subnets_detail.subnet.tags %}
+                  "{{ subnets_detail.subnet.id }}",
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          ]
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ item.gateway_id }}"
+      register: public_route_table
+      with_items: "{{ igw.results }}"

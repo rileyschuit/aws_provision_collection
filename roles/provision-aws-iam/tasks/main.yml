@@ -1,0 +1,17 @@
+---
+- name: Make sure boto is installed locally
+  pip:
+    name: boto
+    state: present
+    extra_args: --user
+
+- name: IAM BLOCK
+  connection: local
+  block:
+    - name: Configure IAM
+      iam:
+        iam_type: "{{ item.type }}"
+        name: "{{ item.name }}"
+        state: "{{ item.state | default('present') }}"
+        trust_policy: "{{ item.trust_policy }}"
+      with_items: "{{ iam }}"

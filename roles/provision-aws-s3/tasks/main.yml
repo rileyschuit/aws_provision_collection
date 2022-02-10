@@ -1,0 +1,24 @@
+---
+- name: S3 bucket Creation
+  block:
+    - s3_bucket:
+        name: "{{ item.value.bucket_name }}"
+        policy: "{{ item.value.policy_details }}"
+        state: "{{ item.value.state | default('present') }}"
+      when: item.value.policy_details is defined
+      with_dict: "{{ s3_buckets }}"
+
+    - s3_bucket:
+        name: "{{ item.value.bucket_name }}"
+        state: "{{ item.value.state | default('present') }}"
+      when: item.value.policy_details is not defined
+      with_dict: "{{ s3_buckets }}"
+
+    - s3_website:
+        name: "{{ item.value.bucket_name }}"
+        state: "{{ item.value.state | default('present') }}"
+        region: "{{ item.value.region | default('us-east-1')}}"
+      when:
+        - item.value.policy_type is defined
+        - item.value.policy_type == "web_hosting"
+      with_dict: "{{ s3_buckets }}"
